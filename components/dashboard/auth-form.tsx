@@ -4,6 +4,7 @@ import { useState, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
 import { z } from "zod";
 import { authClient } from "@/lib/auth/client";
+import { safeNext } from "@/lib/auth/next";
 
 const schema = z.object({
   name: z.string().trim().min(2, "נא להזין שם").optional(),
@@ -11,7 +12,13 @@ const schema = z.object({
   password: z.string().min(8, "הסיסמה חייבת להכיל לפחות 8 תווים"),
 });
 
-export function AuthForm({ mode }: { mode: "sign-in" | "sign-up" }) {
+export function AuthForm({
+  mode,
+  next,
+}: {
+  mode: "sign-in" | "sign-up";
+  next?: string;
+}) {
   const [error, setError] = useState<string | null>(null);
   const [pending, setPending] = useState(false);
   const router = useRouter();
@@ -40,7 +47,7 @@ export function AuthForm({ mode }: { mode: "sign-in" | "sign-up" }) {
           : "אימייל או סיסמה שגויים",
       );
     }
-    router.push("/");
+    router.push(safeNext(next));
     router.refresh();
   }
 
@@ -93,7 +100,10 @@ export function AuthForm({ mode }: { mode: "sign-in" | "sign-up" }) {
       >
         {pending ? "רגע..." : isSignUp ? "הרשמה" : "כניסה"}
       </button>
-      <a className="underline" href={isSignUp ? "/sign-in" : "/sign-up"}>
+      <a
+        className="underline"
+        href={`${isSignUp ? "/sign-in" : "/sign-up"}${next ? `?next=${encodeURIComponent(next)}` : ""}`}
+      >
         {isSignUp ? "כבר יש לי חשבון" : "אין לי חשבון עדיין"}
       </a>
     </form>

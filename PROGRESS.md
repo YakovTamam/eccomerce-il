@@ -105,3 +105,26 @@
 - Terms/privacy/returns pages (Phase 7) are not linked from checkout yet.
 - Partial refunds, abandoned-cart cleanup job, per-store payment terminals, order history/audit trail (Phase 5 `audit_log`) are out of scope for now.
 - No rate limiting on public endpoints yet (Phase 7).
+
+## Phase 5 — MCP server core (code complete)
+
+### Done
+
+- OAuth 2.1 authorization server (DCR, PKCE S256, consent screen in Hebrew, refresh rotation + reuse detection, revocation, metadata documents) and the MCP endpoint `/api/mcp` (stateless Streamable HTTP via the official SDK). ADR 0006.
+- 12 read tools, 8 write tools (see ADR). Token ⇒ exactly one store; `store_id` is never tool input; membership/store status re-checked on every request; per-grant rate limits.
+- Drafts (`drafts` table + service): page / discount / product update / campaign; readable diffs, expiry, stale detection, atomic approval, hallucinated-id protection. Dashboard: drafts list + detail (approve/reject), signed preview for page drafts, "חיבור ל-Claude" page (server URL, instructions, active connections, revoke), audit log page, pending-drafts badge.
+- `audit_log` written in the same transaction as every change; `withStore` now composes nested calls into one transaction.
+- Baseline security headers (X-Frame-Options DENY etc.).
+- Tests: 124 unit/integration (OAuth flow, PKCE vector, reuse detection, atomic campaign rollback, stale drafts, concurrency) + 9 e2e. Acceptance met with the official MCP SDK client: full OAuth login → `get_store_overview` → `create_page` → draft (not live) → `approve_draft` → page published on the store; store A's token cannot read/modify store B (and cannot reference B's products in blocks); read-only token cannot write; revocation and refresh reuse kill access.
+
+### To try it for real (needs the deployed HTTPS URL)
+
+Claude → Settings → Connectors → add custom connector → `https://app.<domain>/api/mcp`. Locally you can use MCP Inspector against the same endpoints (loopback redirect URIs are allowed).
+Vercel needs `APP_URL` (public https origin of app.<domain>), `AUTH_SECRET`; migrations 0010–0012 run at deploy.
+
+### Remaining / notes
+
+- `get_whatsapp_stats` is deferred to Phase 6. Order status via MCP excludes paid/refunded by design (confirm if you want it to go through a draft instead).
+- Draft expiry is lazy (computed on read; no sweeper job). Preview links from MCP last 24h, dashboard ones 1h.
+- Not built yet (agreed order): 5א catalog power tools (bulk create/update, image import by URL, price rules, per-product page blocks) and 5ב marketing foundations (feeds, UTM, Pixel/CAPI with consent, attribution report, campaign ad copy).
+- Rate-limit table is cleaned opportunistically; if traffic grows move it to a proper store (Redis/Upstash).

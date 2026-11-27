@@ -4,11 +4,15 @@ import { z } from "zod";
 /** Signed, expiring preview tokens (MVP_SPEC §6). Reusable for drafts in Phase 5. */
 const payloadSchema = z.object({
   s: z.string().uuid(),
-  k: z.enum(["page"]),
+  k: z.enum(["page", "draft"]),
   i: z.string().uuid(),
   e: z.number().int(),
 });
-export type PreviewPayload = { storeId: string; kind: "page"; id: string };
+export type PreviewPayload = {
+  storeId: string;
+  kind: "page" | "draft";
+  id: string;
+};
 
 function secret() {
   const s = process.env.AUTH_SECRET;

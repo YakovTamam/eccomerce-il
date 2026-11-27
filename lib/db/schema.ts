@@ -558,3 +558,134 @@ export const outboxJobs = pgTable(
     unique("outbox_dedupe_uq").on(t.storeId, t.dedupeKey), // enqueue is idempotent
   ],
 );
+
+// ── OAuth 2.1 for MCP (platform tables: not tenant data, no RLS; owner connection only) ──
+export const oauthClients = pgTable("oauth_clients", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  clientId: text("client_id").notNull().unique(),
+  name: text("name").notNull(),
+  redirectUris: jsonb("redirect_uris").$type<string[]>().notNull(),
+  createdAt: timestamp("created_at", { withTimezone: true })
+    .notNull()
+    .defaultNow(),
+});
+
+export const oauthCodes = pgTable("oauth_codes", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  codeHash: text("code_hash").notNull().unique(),
+  clientId: text("client_id").notNull(),
+  userId: uuid("user_id")
+    .notNull()
+    .references(() => users.id, { onDelete: "cascade" }),
+  storeId: uuid("store_id")
+    .notNull()
+    .references(() => stores.id, { onDelete: "cascade" }),
+  scopes: jsonb("scopes").$type<string[]>().notNull(),
+  codeChallenge: text("code_challenge").notNull(),
+  redirectUri: text("redirect_uri").notNull(),
+  resource: text("resource"),
+  expiresAt: timestamp("expires_at", { withTimezone: true }).notNull(),
+  usedAt: timestamp("used_at", { withTimezone: true }),
+});
+
+export const oauthGrants = pgTable(
+  "oauth_grants",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    clientId: text("client_id").notNull(),
+    userId: uuid("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    storeId: uuid("store_id")
+      .notNull()
+      .references(() => stores.id, { onDelete: "cascade" }),
+    scopes: jsonb("scopes").$type<string[]>().notNull(),
+    resource: text("resource"),
+    accessTokenHash: text("access_token_hash").notNull().unique(),
+    accessExpiresAt: timestamp("access_expires_at", {
+      withTimezone: true,
+    }).notNull(),
+    refreshTokenHash: text("refresh_token_hash").notNull().unique(),
+    prevRefreshTokenHash: text("prev_refresh_token_hash"), // reuse detection after rotation
+    refreshExpiresAt: timestamp("refresh_expires_at", {
+      withTimezone: true,
+    }).notNull(),
+    revokedAt: timestamp("revoked_at", { withTimezone: true }),
+    lastUsedAt: timestamp("last_used_at", { withTimezone: true }),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+  },
+  (t) => [index("oauth_grants_store_idx").on(t.storeId)],
+);
+
+export const rateLimits = pgTable(
+  "rate_limits",
+  {
+    key: text("key").notNull(),
+    windowStart: timestamp("window_start", { withTimezone: true }).notNull(),
+    count: integer("count").notNull().default(0),
+  },
+  (t) => [primaryKey({ columns: [t.key, t.windowStart] })],
+);
+
+// ── Audit log & drafts (tenant tables: RLS in drizzle/0011) ───────────────────
+export const auditLog = pgTable(
+  "audit_log",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    storeId: uuid("store_id")
+      .notNull()
+      .references(() => stores.id, { onDelete: "cascade" }),
+    actorType: text("actor_type", {
+      enum: ["user", "mcp", "ai_agent", "system"],
+    }).notNull(),
+    actorId: text("actor_id"),
+    action: text("action").notNull(),
+    entity: text("entity").notNull(),
+    entityId: text("entity_id"),
+    before: jsonb("before"),
+    after: jsonb("after"),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+  },
+  (t) => [index("audit_store_created_idx").on(t.storeId, t.createdAt)],
+);
+
+export const drafts = pgTable(
+  "drafts",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    storeId: uuid("store_id")
+      .notNull()
+      .references(() => stores.id, { onDelete: "cascade" }),
+    kind: text("kind", {
+      enum: ["page", "discount", "product_update", "campaign"],
+    }).notNull(),
+    parentId: uuid("parent_id"), // campaign children point at their campaign draft
+    title: text("title").notNull(), // short human label
+    summary: jsonb("summary").$type<string[]>().notNull().default([]), // readable diff lines (Hebrew)
+    payload: jsonb("payload").notNull(),
+    status: text("status", {
+      enum: ["pending", "approved", "rejected", "expired"],
+    })
+      .notNull()
+      .default("pending"),
+    createdBy: text("created_by", {
+      enum: ["mcp", "ai_agent", "user"],
+    }).notNull(),
+    createdByRef: text("created_by_ref"),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+    expiresAt: timestamp("expires_at", { withTimezone: true }).notNull(),
+    decidedAt: timestamp("decided_at", { withTimezone: true }),
+    decidedBy: text("decided_by"),
+    lastError: text("last_error"),
+  },
+  (t) => [
+    index("drafts_store_status_idx").on(t.storeId, t.status, t.createdAt),
+    index("drafts_parent_idx").on(t.parentId),
+  ],
+);

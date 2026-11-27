@@ -1,0 +1,1 @@
+ALTER TABLE "drafts" DROP COLUMN "applying_at";
