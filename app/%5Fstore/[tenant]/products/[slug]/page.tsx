@@ -1,8 +1,8 @@
 import { Suspense } from "react";
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
+import { AddToCart } from "@/components/storefront/add-to-cart";
 import { MarkdownView } from "@/components/storefront/markdown-view";
-import { formatAgorot } from "@/lib/catalog/money";
 import { getProductBySlug, getStorefrontStore } from "@/lib/storefront/data";
 import { resolveStore } from "../../layout";
 
@@ -82,29 +82,14 @@ async function Product({ params }: P) {
       <div className="flex flex-col gap-4">
         <h1 className="text-3xl font-bold">{p.title}</h1>
         {p.descriptionMd && <MarkdownView source={p.descriptionMd} />}
-        <h2 className="text-xl font-semibold">אפשרויות ומחירים</h2>
-        <ul className="flex flex-col gap-2">
-          {p.variants.map((v) => (
-            <li
-              key={v.id}
-              className="flex flex-wrap items-center justify-between gap-2 rounded-[var(--radius)] border border-neutral-400 p-3"
-            >
-              <span>{v.title}</span>
-              <span>
-                {v.compareAtAgorot !== null && (
-                  <s className="me-2 text-neutral-700">
-                    <span className="sr-only">מחיר קודם </span>
-                    {formatAgorot(v.compareAtAgorot)}
-                  </s>
-                )}
-                <strong>{formatAgorot(v.priceAgorot)}</strong>
-                {!v.inStock && (
-                  <span className="ms-2 text-neutral-700">(אזל מהמלאי)</span>
-                )}
-              </span>
-            </li>
-          ))}
-        </ul>
+        <AddToCart
+          variants={p.variants.map((v) => ({
+            id: v.id,
+            title: v.title,
+            priceAgorot: v.priceAgorot,
+            inStock: v.inStock,
+          }))}
+        />
         <p className="text-neutral-700">המחירים כוללים מע״מ.</p>
       </div>
     </article>

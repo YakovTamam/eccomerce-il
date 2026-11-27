@@ -80,8 +80,23 @@ describe("CardcomPaymentProvider", () => {
 });
 
 describe("getPaymentProvider", () => {
-  it("defaults to mock", () => {
-    expect(getPaymentProvider({}).constructor.name).toBe("MockPaymentProvider");
+  it("defaults to mock (needs AUTH_SECRET)", () => {
+    expect(getPaymentProvider({ AUTH_SECRET: "s" }).constructor.name).toBe(
+      "MockPaymentProvider",
+    );
+    expect(() => getPaymentProvider({})).toThrow(/AUTH_SECRET/);
+  });
+  it("refuses the mock in production unless explicitly allowed", () => {
+    expect(() =>
+      getPaymentProvider({ NODE_ENV: "production", AUTH_SECRET: "s" }),
+    ).toThrow(/not allowed in production/);
+    expect(
+      getPaymentProvider({
+        NODE_ENV: "production",
+        AUTH_SECRET: "s",
+        ALLOW_MOCK_PAYMENTS: "1",
+      }).name,
+    ).toBe("mock");
   });
   it("requires credentials for cardcom", () => {
     expect(() => getPaymentProvider({ PAYMENT_PROVIDER: "cardcom" })).toThrow(

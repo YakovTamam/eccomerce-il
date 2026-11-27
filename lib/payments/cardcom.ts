@@ -41,6 +41,7 @@ const agorotToShekel = (agorot: number) => agorot / 100; // Cardcom takes decima
  * NOTE: endpoint/field names should be confirmed against the terminal's sandbox before go-live.
  */
 export class CardcomPaymentProvider implements PaymentProvider {
+  readonly name = "cardcom" as const;
   private f: typeof fetch;
   constructor(private cfg: CardcomConfig) {
     this.f = cfg.fetch ?? fetch;

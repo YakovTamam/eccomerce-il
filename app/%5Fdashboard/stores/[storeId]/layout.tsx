@@ -29,7 +29,10 @@ async function Shell({
           {[
             ["products", "מוצרים"],
             ["categories", "קטגוריות"],
+            ["orders", "הזמנות"],
             ["pages", "עמודים"],
+            ["discounts", "קופונים"],
+            ["shipping", "משלוח"],
             ["design", "עיצוב"],
           ].map(([path, label]) => (
             <Link key={path} href={`${base}/${path}`} className="underline">

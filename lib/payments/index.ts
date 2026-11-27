@@ -3,6 +3,12 @@ import { CardcomPaymentProvider } from "./cardcom";
 import { MockPaymentProvider } from "./mock";
 import type { PaymentProvider } from "./provider";
 
+export function appOrigin(
+  source: Record<string, string | undefined> = process.env,
+): string {
+  return new URL(source.APP_URL ?? "http://app.localhost:3000").origin;
+}
+
 export function getPaymentProvider(
   source: Record<string, string | undefined> = process.env,
 ): PaymentProvider {
@@ -24,5 +30,16 @@ export function getPaymentProvider(
       baseUrl: env.CARDCOM_BASE_URL,
     });
   }
-  return new MockPaymentProvider();
+  // The mock "pays" without a card: never allow it to take real orders in production by accident.
+  if (source.NODE_ENV === "production" && source.ALLOW_MOCK_PAYMENTS !== "1") {
+    throw new Error(
+      "PAYMENT_PROVIDER=mock is not allowed in production (set ALLOW_MOCK_PAYMENTS=1 for a demo store)",
+    );
+  }
+  if (!source.AUTH_SECRET)
+    throw new Error("AUTH_SECRET is required for the mock payment provider");
+  return new MockPaymentProvider({
+    secret: source.AUTH_SECRET,
+    origin: appOrigin(source),
+  });
 }

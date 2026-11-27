@@ -291,3 +291,270 @@ export const pageVersions = pgTable(
     unique("page_versions_store_id_uq").on(t.storeId, t.id),
   ],
 );
+
+// ── Commerce (tenant tables, RLS in drizzle/0009) ─────────────────────────────
+export type CartItem = { variantId: string; qty: number };
+export type ShippingAddress = {
+  street: string;
+  city: string;
+  zip?: string;
+  notes?: string;
+};
+
+export const customers = pgTable(
+  "customers",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    storeId: uuid("store_id")
+      .notNull()
+      .references(() => stores.id, { onDelete: "cascade" }),
+    name: text("name").notNull(),
+    phoneE164: text("phone_e164").notNull(),
+    email: text("email"),
+    marketingOptIn: boolean("marketing_opt_in").notNull().default(false),
+    optInAt: timestamp("opt_in_at", { withTimezone: true }),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+  },
+  (t) => [unique("customers_store_phone_uq").on(t.storeId, t.phoneE164)],
+);
+
+export const carts = pgTable(
+  "carts",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    storeId: uuid("store_id")
+      .notNull()
+      .references(() => stores.id, { onDelete: "cascade" }),
+    customerId: uuid("customer_id").references(() => customers.id, {
+      onDelete: "set null",
+    }),
+    channel: text("channel", { enum: ["web", "whatsapp"] })
+      .notNull()
+      .default("web"),
+    status: text("status", { enum: ["open", "converted", "abandoned"] })
+      .notNull()
+      .default("open"),
+    // Only variant ids + quantities: prices are ALWAYS recomputed on the server.
+    items: jsonb("items").$type<CartItem[]>().notNull().default([]),
+    discountCode: text("discount_code"),
+    shippingMethod: text("shipping_method", { enum: ["pickup", "delivery"] }),
+    expiresAt: timestamp("expires_at", { withTimezone: true }),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+    updatedAt: timestamp("updated_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+  },
+  (t) => [unique("carts_store_id_uq").on(t.storeId, t.id)],
+);
+
+export const storeCounters = pgTable(
+  "store_counters",
+  {
+    storeId: uuid("store_id")
+      .notNull()
+      .references(() => stores.id, { onDelete: "cascade" }),
+    name: text("name").notNull(),
+    value: integer("value").notNull().default(0),
+  },
+  (t) => [primaryKey({ columns: [t.storeId, t.name] })],
+);
+
+export const orders = pgTable(
+  "orders",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    storeId: uuid("store_id")
+      .notNull()
+      .references(() => stores.id, { onDelete: "cascade" }),
+    number: integer("number").notNull(), // running per store
+    customerId: uuid("customer_id").references(() => customers.id, {
+      onDelete: "set null",
+    }),
+    cartId: uuid("cart_id"),
+    channel: text("channel", { enum: ["web", "whatsapp", "mcp"] })
+      .notNull()
+      .default("web"),
+    status: text("status", {
+      enum: [
+        "pending_payment",
+        "paid",
+        "preparing",
+        "ready",
+        "shipped",
+        "completed",
+        "cancelled",
+        "refunded",
+      ],
+    })
+      .notNull()
+      .default("pending_payment"),
+    subtotalAgorot: integer("subtotal_agorot").notNull(),
+    discountAgorot: integer("discount_agorot").notNull().default(0),
+    shippingAgorot: integer("shipping_agorot").notNull().default(0),
+    totalAgorot: integer("total_agorot").notNull(),
+    vatRateBp: integer("vat_rate_bp").notNull(), // snapshot, basis points (1800 = 18%)
+    discountCode: text("discount_code"),
+    shippingMethod: text("shipping_method", {
+      enum: ["pickup", "delivery"],
+    }).notNull(),
+    shippingAddress: jsonb("shipping_address").$type<ShippingAddress | null>(),
+    notes: text("notes").notNull().default(""),
+    paidAt: timestamp("paid_at", { withTimezone: true }),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+  },
+  (t) => [
+    unique("orders_store_number_uq").on(t.storeId, t.number),
+    unique("orders_store_id_uq").on(t.storeId, t.id),
+    index("orders_store_status_idx").on(t.storeId, t.status, t.createdAt),
+    check(
+      "orders_amounts_nonneg",
+      sql`${t.subtotalAgorot} >= 0 and ${t.discountAgorot} >= 0 and ${t.shippingAgorot} >= 0 and ${t.totalAgorot} >= 0`,
+    ),
+  ],
+);
+
+export const orderItems = pgTable(
+  "order_items",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    storeId: uuid("store_id")
+      .notNull()
+      .references(() => stores.id, { onDelete: "cascade" }),
+    orderId: uuid("order_id").notNull(),
+    // No FK: catalog rows may change/disappear; the order keeps its own snapshot.
+    variantId: uuid("variant_id"),
+    titleSnapshot: text("title_snapshot").notNull(),
+    unitPriceAgorot: integer("unit_price_agorot").notNull(),
+    qty: integer("qty").notNull(),
+  },
+  (t) => [
+    foreignKey({
+      columns: [t.storeId, t.orderId],
+      foreignColumns: [orders.storeId, orders.id],
+      name: "order_items_store_order_fk",
+    }).onDelete("cascade"),
+    index("order_items_order_idx").on(t.orderId),
+    check(
+      "order_items_qty_pos",
+      sql`${t.qty} > 0 and ${t.unitPriceAgorot} >= 0`,
+    ),
+  ],
+);
+
+export const payments = pgTable(
+  "payments",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    storeId: uuid("store_id")
+      .notNull()
+      .references(() => stores.id, { onDelete: "cascade" }),
+    orderId: uuid("order_id").notNull(),
+    provider: text("provider").notNull(),
+    providerRef: text("provider_ref").notNull(),
+    status: text("status", { enum: ["pending", "paid", "failed", "refunded"] })
+      .notNull()
+      .default("pending"),
+    amountAgorot: integer("amount_agorot").notNull(),
+    raw: jsonb("raw").notNull().default({}),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+  },
+  (t) => [
+    foreignKey({
+      columns: [t.storeId, t.orderId],
+      foreignColumns: [orders.storeId, orders.id],
+      name: "payments_store_order_fk",
+    }).onDelete("cascade"),
+    unique("payments_provider_ref_uq").on(t.provider, t.providerRef), // webhook idempotency
+  ],
+);
+
+export const invoices = pgTable(
+  "invoices",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    storeId: uuid("store_id")
+      .notNull()
+      .references(() => stores.id, { onDelete: "cascade" }),
+    orderId: uuid("order_id").notNull(),
+    provider: text("provider").notNull(),
+    providerDocId: text("provider_doc_id").notNull(),
+    url: text("url").notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+  },
+  (t) => [
+    foreignKey({
+      columns: [t.storeId, t.orderId],
+      foreignColumns: [orders.storeId, orders.id],
+      name: "invoices_store_order_fk",
+    }).onDelete("cascade"),
+    unique("invoices_store_order_uq").on(t.storeId, t.orderId), // one invoice per order
+  ],
+);
+
+export const discounts = pgTable(
+  "discounts",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    storeId: uuid("store_id")
+      .notNull()
+      .references(() => stores.id, { onDelete: "cascade" }),
+    code: text("code").notNull(), // stored UPPERCASE
+    type: text("type", {
+      enum: ["percent", "fixed", "free_shipping"],
+    }).notNull(),
+    value: integer("value").notNull().default(0), // percent 1-100, or agorot for "fixed"
+    startsAt: timestamp("starts_at", { withTimezone: true }),
+    endsAt: timestamp("ends_at", { withTimezone: true }),
+    usageLimit: integer("usage_limit"),
+    usedCount: integer("used_count").notNull().default(0),
+    status: text("status", { enum: ["active", "disabled"] })
+      .notNull()
+      .default("active"),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+  },
+  (t) => [
+    unique("discounts_store_code_uq").on(t.storeId, t.code),
+    check(
+      "discounts_value_ok",
+      sql`${t.value} >= 0 and (${t.type} <> 'percent' or ${t.value} <= 100)`,
+    ),
+  ],
+);
+
+export const outboxJobs = pgTable(
+  "outbox_jobs",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    storeId: uuid("store_id")
+      .notNull()
+      .references(() => stores.id, { onDelete: "cascade" }),
+    type: text("type").notNull(),
+    payload: jsonb("payload").notNull().default({}),
+    dedupeKey: text("dedupe_key"),
+    runAt: timestamp("run_at", { withTimezone: true }).notNull().defaultNow(),
+    attempts: integer("attempts").notNull().default(0),
+    status: text("status", { enum: ["pending", "done", "failed"] })
+      .notNull()
+      .default("pending"),
+    lastError: text("last_error"),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+  },
+  (t) => [
+    index("outbox_pending_idx").on(t.status, t.runAt),
+    unique("outbox_dedupe_uq").on(t.storeId, t.dedupeKey), // enqueue is idempotent
+  ],
+);

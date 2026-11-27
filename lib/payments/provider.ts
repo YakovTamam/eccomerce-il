@@ -23,6 +23,7 @@ export type PaymentEvent = {
 };
 
 export interface PaymentProvider {
+  readonly name: "mock" | "cardcom";
   createHostedPayment(
     input: HostedPaymentInput,
   ): Promise<{ url: string; providerRef: string }>;

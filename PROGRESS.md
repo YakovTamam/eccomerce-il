@@ -80,3 +80,28 @@
 - Drag & drop reordering not built; up/down buttons used (keyboard accessible). Can add DnD later if wanted.
 - Category pages show only direct products (no nesting UI yet).
 - Dev-only Next warnings about runtime data in `generateMetadata`/"instant" validation; `next build` is clean.
+
+## Phase 4 — Cart, checkout & payment (code complete, mock provider)
+
+### Done
+
+- DB (RLS, migrations 0008–0009): `customers`, `carts`, `store_counters`, `orders`, `order_items`, `payments`, `invoices`, `discounts`, `outbox_jobs`. ADR 0005.
+- Cart (cookie-bound, server-priced), coupons (percent / fixed / free shipping, window, usage limit), shipping (pickup / flat rate / free over threshold, configurable per store), checkout form with phone normalisation (E.164), marketing opt-in unchecked by default and timestamped.
+- Payment: `MockPaymentProvider` (signed hosted page + signed webhook) and the Cardcom adapter behind the same interface; webhook `/api/webhooks/payments/[provider]`; idempotent processing; amount check; stock decrement; coupon usage; invoice (mock) and confirmation email through the outbox; refund (restocks).
+- Dashboard: orders (filter, detail, status changes, full refund), coupons, shipping settings. Storefront: add to cart, cart, checkout, success pages, cart count in the header.
+- Tests: 103 unit/integration (incl. concurrent webhooks, wrong amount, oversell, cross-store isolation) + 7 e2e. Acceptance met: product → cart → coupon → mock payment → order `paid` → stock down → invoice created; duplicate/forged webhooks change nothing; axe: no critical/serious violations on cart and checkout.
+
+### Needed on Vercel before this works in production
+
+- `AUTH_SECRET`, `APP_URL`, `CRON_SECRET` (random), `DATABASE_URL*`, `BLOB_READ_WRITE_TOKEN`.
+- Payments: either `PAYMENT_PROVIDER=cardcom` + `CARDCOM_*`, or for a demo store `ALLOW_MOCK_PAYMENTS=1` (the mock is refused in production otherwise, checkout will show an error).
+- A cron/pinger for `/api/cron/outbox` (Bearer `CRON_SECRET`); invoices/emails are also attempted right after payment.
+- Optional: `RESEND_API_KEY` + `EMAIL_FROM` for real order e-mails.
+
+### Remaining / notes
+
+- Cardcom adapter still unverified against the real sandbox (field names/endpoints); invoice provider (Morning / iCount) not chosen, mock only.
+- Cardcom `ReturnValue` carries `"<storeId>:<orderId>"` (73 chars): confirm Cardcom accepts that length.
+- Terms/privacy/returns pages (Phase 7) are not linked from checkout yet.
+- Partial refunds, abandoned-cart cleanup job, per-store payment terminals, order history/audit trail (Phase 5 `audit_log`) are out of scope for now.
+- No rate limiting on public endpoints yet (Phase 7).
