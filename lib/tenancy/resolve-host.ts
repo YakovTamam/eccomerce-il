@@ -50,10 +50,14 @@ export function resolveHost(
   return { kind: "custom", hostname: host };
 }
 
+export const DEFAULT_ROOT_DOMAIN = "xn--4dbklvp7aj.xn--4dbrk0ce"; // איקומרס.ישראל
+
 export function getRootDomains(
   env: Record<string, string | undefined> = process.env,
 ): string[] {
-  return [env.ROOT_DOMAIN, env.ALT_ROOT_DOMAIN, "localhost"].filter(
-    (d): d is string => !!d,
-  );
+  return [
+    env.ROOT_DOMAIN || DEFAULT_ROOT_DOMAIN,
+    env.ALT_ROOT_DOMAIN,
+    "localhost",
+  ].filter((d): d is string => !!d);
 }

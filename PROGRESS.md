@@ -128,3 +128,25 @@ Vercel needs `APP_URL` (public https origin of app.<domain>), `AUTH_SECRET`; mig
 - Draft expiry is lazy (computed on read; no sweeper job). Preview links from MCP last 24h, dashboard ones 1h.
 - Not built yet (agreed order): 5א catalog power tools (bulk create/update, image import by URL, price rules, per-product page blocks) and 5ב marketing foundations (feeds, UTM, Pixel/CAPI with consent, attribution report, campaign ad copy).
 - Rate-limit table is cleaned opportunistically; if traffic grows move it to a proper store (Redis/Upstash).
+
+## Super-admin panel v1 (code complete)
+
+### Done
+
+- `app.<root>/admin`: overview (KPIs with sparklines and period deltas, interactive daily-revenue chart with table view, "needs attention" list, new stores, recent admin actions), stores (search by name/slug/owner/email, status + plan filters, sort, pagination), store page (stats, domains, WhatsApp setup, plan, members, MCP connections, activity, suspend/reactivate), domains queue, system health (outbox, failed jobs with retry, failed payments), admin audit log.
+- Platform role via `pnpm admin:grant <email>`; `platform_audit_log`; `whatsapp_accounts` table (RLS, for Phase 6) with encrypted token (`lib/crypto/secrets.ts`, needs `ENCRYPTION_KEY`).
+- Suspension is enforced everywhere (storefront, owner dashboard → /suspended page, MCP). ADR 0007.
+- Design: modern card UI, dark mode (applied before paint), RTL, mobile drawer, keyboard shortcuts; axe-clean in light and dark.
+- Dev tooling: `ALLOW_DEMO_SEED=1 pnpm seed:demo [admin-email]` fills a LOCAL DB with 13 demo stores, orders, domains, WhatsApp accounts, failed jobs/payments, MCP connections (refuses to run in production).
+- Tests: 135 unit/integration + 11 e2e. Bugs caught on the way: IDN/hostname validation gaps, default root domain when `ROOT_DOMAIN` unset, Prettier's Tailwind plugin trimming spaces in template class names (use `cx()`), contrast of link-buttons, drawer not closing on navigation, admin pages prerendering at build.
+
+### To use
+
+1. Sign up normally, then run `pnpm admin:grant you@example.com` against the production database (Neon console SQL works too: `update users set platform_role='admin' where email='...'`).
+2. Vercel env: `ENCRYPTION_KEY` (`openssl rand -base64 32`) is now required to save WhatsApp tokens.
+
+### Remaining / notes
+
+- No customer-level support tooling or "view as owner" (deliberately postponed; would need an explicit, audited, read-only impersonation design).
+- Usage/billing views (message usage) arrive with Phase 6 data. 2FA for admins pending an email provider.
+- The inline theme script will need a CSP nonce when CSP headers are added (Phase 7).

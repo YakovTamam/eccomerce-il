@@ -23,3 +23,17 @@ export function formatAgorot(agorot: number): string {
   );
   return `₪${whole}.${String(agorot % 100).padStart(2, "0")}`;
 }
+
+/** ₪12,345 (rounded to whole shekels, half up) — for dashboards. */
+export function formatShekelsRounded(agorot: number): string {
+  const whole = Math.trunc((Math.abs(agorot) + 50) / 100);
+  return `${agorot < 0 ? "-" : ""}₪${String(whole).replace(/\B(?=(\d{3})+(?!\d))/g, ",")}`;
+}
+
+/** ₪1.2K / ₪3.4M for chart axes (integer math). */
+export function formatCompactShekels(agorot: number): string {
+  const sh = Math.trunc(agorot / 100);
+  if (sh >= 1_000_000) return `₪${Math.trunc(sh / 100_000) / 10}M`;
+  if (sh >= 1_000) return `₪${Math.trunc(sh / 100) / 10}K`;
+  return `₪${sh}`;
+}

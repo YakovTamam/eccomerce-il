@@ -9,7 +9,7 @@ import {
   pages,
 } from "@/lib/db/schema";
 import { withStore } from "@/lib/db/with-store";
-import { findStoreIdByKey } from "@/lib/tenancy/stores";
+import { findStoreByKeyAnyStatus } from "@/lib/tenancy/stores";
 import { getPublishedPage } from "@/lib/pages/service";
 import { readTheme, type Theme } from "@/lib/theme/theme";
 import { getDb } from "@/lib/db/client";
@@ -32,9 +32,11 @@ export async function getStorefrontStore(
 ): Promise<StorefrontStore | null> {
   "use cache";
   cacheLife("hours");
-  const id = await findStoreIdByKey(key);
-  if (!id) return null;
-  cacheTag(`store:${id}`);
+  const found = await findStoreByKeyAnyStatus(key);
+  if (!found) return null;
+  const id = found.id;
+  cacheTag(`store:${id}`); // tagged even when suspended, so activation invalidates the cached "not found"
+  if (found.status !== "active") return null;
   const row = await withStore(id, async (tx) => {
     const [s] = await tx.select().from(stores).where(eq(stores.id, id));
     return s;

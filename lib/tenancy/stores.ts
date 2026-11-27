@@ -84,3 +84,34 @@ export async function createStoreForUser(
     return store;
   });
 }
+
+/** Like findStoreIdByKey but ignores status: lets the storefront cache stay tagged (and invalidate) across suspend/activate. */
+export async function findStoreByKeyAnyStatus(
+  key: string,
+  db: Db = getDb(),
+): Promise<{ id: string; status: "active" | "suspended" } | null> {
+  if (key.includes(".")) {
+    const [row] = await db
+      .select({ id: stores.id, status: stores.status })
+      .from(storeDomains)
+      .innerJoin(stores, eq(stores.id, storeDomains.storeId))
+      .where(eq(storeDomains.hostname, key))
+      .limit(1);
+    return row ?? null;
+  }
+  const [row] = await db
+    .select({ id: stores.id, status: stores.status })
+    .from(stores)
+    .where(eq(stores.slug, key))
+    .limit(1);
+  return row ?? null;
+}
+
+export async function getStoreStatus(storeId: string, db: Db = getDb()) {
+  const [r] = await db
+    .select({ status: stores.status })
+    .from(stores)
+    .where(eq(stores.id, storeId))
+    .limit(1);
+  return r?.status ?? null;
+}

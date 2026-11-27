@@ -23,6 +23,8 @@ export const users = pgTable("users", {
   name: text("name").notNull(),
   emailVerified: boolean("email_verified").notNull().default(false),
   image: text("image"),
+  // Platform-level role (NOT a store role). Granted only out-of-band: `pnpm admin:grant <email>`.
+  platformRole: text("platform_role", { enum: ["admin"] }),
   createdAt: timestamp("created_at", { withTimezone: true })
     .notNull()
     .defaultNow(),
@@ -687,5 +689,56 @@ export const drafts = pgTable(
   (t) => [
     index("drafts_store_status_idx").on(t.storeId, t.status, t.createdAt),
     index("drafts_parent_idx").on(t.parentId),
+  ],
+);
+
+// ── Platform admin (platform tables: owner connection only) ───────────────────
+export const platformAuditLog = pgTable(
+  "platform_audit_log",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    actorUserId: uuid("actor_user_id").references(() => users.id, {
+      onDelete: "set null",
+    }),
+    action: text("action").notNull(),
+    storeId: uuid("store_id").references(() => stores.id, {
+      onDelete: "set null",
+    }),
+    details: jsonb("details").notNull().default({}),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+  },
+  (t) => [
+    index("platform_audit_created_idx").on(t.createdAt),
+    index("platform_audit_store_idx").on(t.storeId),
+  ],
+);
+
+// Configured by a platform admin in the MVP (no Embedded Signup). Read by the WhatsApp channel in Phase 6 via withStore.
+export const whatsappAccounts = pgTable(
+  "whatsapp_accounts",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    storeId: uuid("store_id")
+      .notNull()
+      .references(() => stores.id, { onDelete: "cascade" }),
+    phoneNumberId: text("phone_number_id").notNull(),
+    wabaId: text("waba_id").notNull(),
+    displayPhone: text("display_phone").notNull(),
+    accessTokenEncrypted: text("access_token_encrypted").notNull(), // AES-256-GCM, never shown
+    status: text("status", { enum: ["pending", "active", "disabled"] })
+      .notNull()
+      .default("pending"),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+    updatedAt: timestamp("updated_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+  },
+  (t) => [
+    unique("whatsapp_store_uq").on(t.storeId),
+    unique("whatsapp_phone_number_uq").on(t.phoneNumberId),
   ],
 );

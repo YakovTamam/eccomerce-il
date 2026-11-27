@@ -1,6 +1,6 @@
 import { notFound, redirect } from "next/navigation";
 import { z } from "zod";
-import { isMemberOfStore } from "@/lib/tenancy/stores";
+import { getStoreStatus, isMemberOfStore } from "@/lib/tenancy/stores";
 import { getSession } from "./session";
 
 /**
@@ -13,5 +13,7 @@ export async function requireStoreAccess(storeId: string) {
   if (!z.string().uuid().safeParse(storeId).success) notFound();
   const role = await isMemberOfStore(session.user.id, storeId);
   if (!role) notFound();
+  // A suspended store keeps its data but nobody manages it until a platform admin reactivates it.
+  if ((await getStoreStatus(storeId)) === "suspended") redirect("/suspended");
   return { user: session.user, role, storeId };
 }
