@@ -12,7 +12,7 @@
 
 ### Remaining for Phase 0
 
-- Run `pnpm db:migrate` against a real Neon DB (no DATABASE_URL in this environment yet).
+- Migration runs on Vercel deploy via the `vercel-build` script (`drizzle-kit migrate && next build`), since DATABASE_URL* live in Vercel, not in the Claude session. Founder confirmed the env vars are set in Vercel; not verified from here. Check the first deploy log.
 - shadcn/ui init (`components.json` + first components) — not done yet.
 - In sandboxed environments run e2e with `PW_CHROMIUM_PATH=/opt/pw-browsers/chromium`.
 
