@@ -3,6 +3,10 @@
 import { redirect } from "next/navigation";
 import { z } from "zod";
 import { requireStoreAccess } from "@/lib/auth/access";
+import {
+  invalidateProduct,
+  invalidateStore,
+} from "@/lib/storefront/revalidate";
 import { parseProductForm, categorySchema } from "@/lib/catalog/schemas";
 import {
   createCategory,
@@ -31,9 +35,13 @@ export async function saveProductAction(
   if (!parsed.ok) return { error: parsed.error };
 
   try {
-    if (productId?.success)
+    if (productId?.success) {
       await updateProduct(storeId, productId.data, parsed.data);
-    else await createProduct(storeId, parsed.data);
+      invalidateProduct(productId.data);
+    } else {
+      await createProduct(storeId, parsed.data);
+    }
+    invalidateStore(storeId);
   } catch (e) {
     if (e instanceof InvalidReferenceError)
       return { error: "הקטגוריה שנבחרה לא קיימת" };
@@ -58,6 +66,7 @@ export async function createCategoryAction(
   const parsed = categorySchema.safeParse({ name: formData.get("name") });
   if (!parsed.success) return { error: parsed.error.issues[0].message };
   await createCategory(storeId, parsed.data.name);
+  invalidateStore(storeId);
   redirect(`/stores/${storeId}/categories`);
 }
 
@@ -67,5 +76,6 @@ export async function deleteCategoryAction(formData: FormData) {
   const id = idSchema.safeParse(formData.get("categoryId"));
   if (!id.success) return;
   await deleteCategory(storeId, id.data);
+  invalidateStore(storeId);
   redirect(`/stores/${storeId}/categories`);
 }

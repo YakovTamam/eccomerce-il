@@ -43,6 +43,20 @@
       "when": 1795773763485,
       "tag": "0005_moaning_union_jack",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1795774349178,
+      "tag": "0006_opposite_molten_man",
+      "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1795774349900,
+      "tag": "0007_rls_pages",
+      "breakpoints": true
     }
   ]
 }

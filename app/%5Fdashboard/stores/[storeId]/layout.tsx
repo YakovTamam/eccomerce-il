@@ -25,13 +25,17 @@ async function Shell({
           כל החנויות
         </Link>
         <strong className="text-lg">{store?.name}</strong>
-        <nav aria-label="ניהול החנות" className="flex gap-4">
-          <a href={`${base}/products`} className="underline">
-            מוצרים
-          </a>
-          <a href={`${base}/categories`} className="underline">
-            קטגוריות
-          </a>
+        <nav aria-label="ניהול החנות" className="flex flex-wrap gap-4">
+          {[
+            ["products", "מוצרים"],
+            ["categories", "קטגוריות"],
+            ["pages", "עמודים"],
+            ["design", "עיצוב"],
+          ].map(([path, label]) => (
+            <Link key={path} href={`${base}/${path}`} className="underline">
+              {label}
+            </Link>
+          ))}
         </nav>
       </header>
       {children}

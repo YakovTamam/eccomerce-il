@@ -3,7 +3,7 @@ import { getRootDomains, resolveHost } from "@/lib/tenancy/resolve-host";
 
 // Paths that must never be rewritten: Next internals, API routes, well-known, static files.
 const PASSTHROUGH =
-  /^\/(?:_next\/|api\/|\.well-known\/|favicon\.ico$|robots\.txt$)/;
+  /^\/(?:_next\/|api\/|uploads\/|\.well-known\/|favicon\.ico$)/;
 // Internal route trees reachable only through our rewrites, never directly.
 const INTERNAL = /^\/(?:_store|_dashboard|_preview)(?:\/|$)/;
 

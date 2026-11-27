@@ -1,8 +1,12 @@
 import type { Metadata } from "next";
-import { Heebo } from "next/font/google";
+import { Assistant, Heebo } from "next/font/google";
 import "./globals.css";
 
 const heebo = Heebo({ variable: "--font-heebo", subsets: ["hebrew", "latin"] });
+const assistant = Assistant({
+  variable: "--font-assistant",
+  subsets: ["hebrew", "latin"],
+});
 
 export const metadata: Metadata = {
   title: "איקומרס.ישראל",
@@ -14,7 +18,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
     <html
       lang="he"
       dir="rtl"
-      className={`${heebo.variable} h-full antialiased`}
+      className={`${heebo.variable} ${assistant.variable} h-full antialiased`}
     >
       <body className="flex min-h-full flex-col">{children}</body>
     </html>

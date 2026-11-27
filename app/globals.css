@@ -23,3 +23,19 @@ body {
   color: var(--foreground);
   font-family: var(--font-heebo), sans-serif;
 }
+
+/* Accessibility: always-visible keyboard focus (WCAG 2.4.7) */
+:focus-visible {
+  outline: 3px solid currentColor;
+  outline-offset: 3px;
+}
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation: none !important;
+    transition: none !important;
+    scroll-behavior: auto !important;
+  }
+}
+.store-root {
+  font-family: var(--font-store), sans-serif;
+}

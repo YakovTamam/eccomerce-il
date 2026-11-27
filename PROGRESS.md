@@ -59,3 +59,24 @@
 - Not in this phase: product deletion (archive status only), category parent/ordering UI, bulk stock tools, `audit_log` (Phase 5).
 - Missing/foreign store pages still return HTTP 200 with 404 content (streaming), to be fixed in Phase 3.
 - Dev: clear `.next` if `tsc` complains about stale route types.
+
+## Phase 3 — Blocks & storefront (code complete)
+
+### Done
+
+- DB: `pages`, `page_versions` (RLS, composite FK; migrations 0006–0007). ADR 0004.
+- Blocks: 12 Zod-validated types (hero, rich_text, image, gallery, product_grid, featured_product, banner (+countdown), testimonials, faq, cta_whatsapp, contact, spacer); safe markdown; renderer as server components.
+- Dashboard: pages list/create, block editor (a form per block type, up/down reorder, image upload with required alt), save-as-draft / save+publish, version history (publish any version = rollback, restore into editor), signed expiring preview, theme editor (colours with automatic accessible text colour, font, radius, logo).
+- Storefront (per store host, RTL, mobile-first): home (published `home` page or default product grid), product, category, custom pages; header/nav/footer, skip link, focus styles, reduced motion; SEO: titles, descriptions, canonical, Open Graph, Product JSON-LD, per-store `sitemap.xml` and `robots.txt`.
+- Caching: `'use cache'` + tags, invalidated by dashboard actions.
+- Tests: 68 unit/integration + 6 e2e. Acceptance met: page with 7 block types publishes and renders correctly at 375px in RTL; axe (wcag2a/aa, 2.1 a/aa) reports **no critical/serious violations** on home and product pages; rollback, preview (and tampered token), theme propagation, XSS-in-markdown all covered.
+- Also fixed: `/uploads` was not passed through by the proxy (images from local-dev uploads 404'd); production build no longer prerenders tenant route handlers.
+
+### Remaining / notes
+
+- HTTP status for unknown store/page is still 200 with 404 content (see ADR 0004).
+- Footer lacks accessibility statement / privacy / returns links (Phase 7).
+- No cart / "add to cart" yet (Phase 4): product page lists variants and prices read-only.
+- Drag & drop reordering not built; up/down buttons used (keyboard accessible). Can add DnD later if wanted.
+- Category pages show only direct products (no nesting UI yet).
+- Dev-only Next warnings about runtime data in `generateMetadata`/"instant" validation; `next build` is clean.

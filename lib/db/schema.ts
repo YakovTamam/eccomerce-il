@@ -232,3 +232,62 @@ export const productVariants = pgTable(
     check("product_variants_stock_nonneg", sql`${t.stockQty} >= 0`),
   ],
 );
+
+// ── Pages (block builder) — tenant tables, RLS in drizzle/0007 ────────────────
+export const pages = pgTable(
+  "pages",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    storeId: uuid("store_id")
+      .notNull()
+      .references(() => stores.id, { onDelete: "cascade" }),
+    slug: text("slug").notNull(), // "home" is the storefront home page
+    title: text("title").notNull(),
+    status: text("status", { enum: ["draft", "published"] })
+      .notNull()
+      .default("draft"),
+    blocks: jsonb("blocks").$type<unknown[]>().notNull().default([]), // working copy
+    seo: jsonb("seo")
+      .$type<{ title?: string; description?: string }>()
+      .notNull()
+      .default({}),
+    publishedVersionId: uuid("published_version_id"),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+    updatedAt: timestamp("updated_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+  },
+  (t) => [
+    unique("pages_store_slug_uq").on(t.storeId, t.slug),
+    unique("pages_store_id_uq").on(t.storeId, t.id),
+  ],
+);
+
+export const pageVersions = pgTable(
+  "page_versions",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    storeId: uuid("store_id")
+      .notNull()
+      .references(() => stores.id, { onDelete: "cascade" }),
+    pageId: uuid("page_id").notNull(),
+    blocks: jsonb("blocks").$type<unknown[]>().notNull(),
+    createdBy: text("created_by", { enum: ["user", "mcp"] })
+      .notNull()
+      .default("user"),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+  },
+  (t) => [
+    foreignKey({
+      columns: [t.storeId, t.pageId],
+      foreignColumns: [pages.storeId, pages.id],
+      name: "page_versions_store_page_fk",
+    }).onDelete("cascade"),
+    index("page_versions_page_idx").on(t.pageId, t.createdAt),
+    unique("page_versions_store_id_uq").on(t.storeId, t.id),
+  ],
+);

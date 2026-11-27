@@ -1,34 +1,59 @@
 import { Suspense } from "react";
-import { notFound } from "next/navigation";
-import { eq } from "drizzle-orm";
-import { stores } from "@/lib/db/schema";
-import { withStore } from "@/lib/db/with-store";
-import { findStoreIdByKey } from "@/lib/tenancy/stores";
+import type { Metadata } from "next";
+import { BlockRenderer } from "@/components/storefront/blocks/render";
+import {
+  getPublishedPageCached,
+  getStorefrontStore,
+} from "@/lib/storefront/data";
+import { resolveStore } from "./layout";
 
-async function StoreHome({ params }: { params: Promise<{ tenant: string }> }) {
+type P = { params: Promise<{ tenant: string }> };
+
+export async function generateMetadata({ params }: P): Promise<Metadata> {
   const { tenant } = await params;
-  const storeId = await findStoreIdByKey(decodeURIComponent(tenant));
-  if (!storeId) notFound();
-  const [store] = await withStore(storeId, (tx) =>
-    tx.select().from(stores).where(eq(stores.id, storeId)),
-  );
-  if (!store) notFound();
+  const store = await getStorefrontStore(decodeURIComponent(tenant));
+  if (!store) return {};
+  const page = await getPublishedPageCached(store.id, "home");
+  const description = page?.seo.description;
+  const title = page?.seo.title ?? store.name;
+  return {
+    title: { absolute: title },
+    description,
+    alternates: { canonical: "/" },
+    openGraph: { title, description, url: "/" },
+  };
+}
+
+async function Home({ params }: P) {
+  const store = await resolveStore(params);
+  const page = await getPublishedPageCached(store.id, "home");
   return (
-    <main className="flex flex-1 flex-col items-center justify-center gap-2 p-8">
-      <h1 className="text-3xl font-bold">{store.name}</h1>
-      <p className="text-neutral-600">החנות בבנייה</p>
-    </main>
+    <>
+      <h1 className="sr-only">{store.name}</h1>
+      {page ? (
+        <BlockRenderer storeId={store.id} blocks={page.blocks} />
+      ) : (
+        <BlockRenderer
+          storeId={store.id}
+          blocks={[
+            {
+              id: "default",
+              type: "product_grid",
+              heading: "המוצרים שלנו",
+              source: { by: "all" },
+              limit: 12,
+            },
+          ]}
+        />
+      )}
+    </>
   );
 }
 
-export default function StorePage({
-  params,
-}: {
-  params: Promise<{ tenant: string }>;
-}) {
+export default function StoreHomePage({ params }: P) {
   return (
-    <Suspense fallback={<p className="p-8">טוען...</p>}>
-      <StoreHome params={params} />
+    <Suspense fallback={<p>טוען...</p>}>
+      <Home params={params} />
     </Suspense>
   );
 }
