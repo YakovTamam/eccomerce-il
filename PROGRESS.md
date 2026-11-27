@@ -43,3 +43,19 @@
 ### Open questions for the founder
 
 - Same as Phase 0, plus: confirm the first deploy's migration log (0002 creates role `app_rls`; needs a DB owner that can CREATE ROLE — Neon's default owner can).
+
+## Phase 2 — Catalog & dashboard (code complete)
+
+### Done
+
+- Schema + RLS: `categories`, `products`, `product_variants` (migrations 0003–0005): composite FK per store, CHECK constraints, variant `position`. ADR 0003.
+- Service layer (`lib/catalog`): all via `withStore`; Zod schemas; integer-agorot money helpers.
+- Dashboard: per-store area (`/stores/[storeId]/…`) guarded by session + membership; products list (variants, min price, stock), create/edit product with dynamic variants, categories CRUD, image upload with required alt text (Vercel Blob; local fallback in dev).
+- Tests: 55 unit/integration (real Postgres) + 5 e2e. Acceptance met: product with 2 variants + image saved with the correct `store_id` (checked in DB), editable, invisible/unwritable from another store (service, DB FK, upload route 403).
+
+### Remaining / notes
+
+- Vercel env: `BLOB_READ_WRITE_TOKEN` (create a Blob store in the Vercel project) — uploads fail in production without it.
+- Not in this phase: product deletion (archive status only), category parent/ordering UI, bulk stock tools, `audit_log` (Phase 5).
+- Missing/foreign store pages still return HTTP 200 with 404 content (streaming), to be fixed in Phase 3.
+- Dev: clear `.next` if `tsc` complains about stale route types.

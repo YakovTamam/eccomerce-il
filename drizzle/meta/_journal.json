@@ -22,6 +22,27 @@
       "when": 1795772380011,
       "tag": "0002_rls_tenancy",
       "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1795773430334,
+      "tag": "0003_medical_captain_universe",
+      "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1795773431031,
+      "tag": "0004_rls_catalog",
+      "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1795773763485,
+      "tag": "0005_moaning_union_jack",
+      "breakpoints": true
     }
   ]
 }

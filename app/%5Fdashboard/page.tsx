@@ -28,11 +28,14 @@ async function Dashboard() {
           <ul className="flex flex-col gap-2">
             {myStores.map((s) => (
               <li key={s.id}>
+                <a className="underline" href={`/stores/${s.id}/products`}>
+                  {s.name}
+                </a>{" "}
                 <a
                   className="underline"
                   href={`${proto}://${s.slug}.${rootHost}`}
                 >
-                  {s.name}
+                  (צפייה בחנות)
                 </a>{" "}
                 <span className="text-neutral-600" dir="ltr">
                   ({s.slug})

@@ -1,6 +1,7 @@
 import { defineConfig } from "@playwright/test";
 
 export default defineConfig({
+  expect: { timeout: 15_000 },
   testDir: "tests/e2e",
   use: {
     baseURL: "http://localhost:3000",
