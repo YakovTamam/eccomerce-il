@@ -163,3 +163,8 @@ Vercel needs `APP_URL` (public https origin of app.<domain>), `AUTH_SECRET`; mig
 - Copy still to confirm: pricing section (when plans are decided), real beta merchants to replace the illustrative store cards, whether to add a waitlist/contact form (needs an email provider).
 - Using the "Claude" name in marketing should be checked against Anthropic's brand guidelines before launch.
 - Hero text differs slightly from the reference image on purpose: "חנות, הזמנות ושיווק" (WhatsApp ordering isn't live yet) and trust items limited to what exists today.
+
+## Deployment
+
+- Vercel: Production Branch must be `main` (see docs/DEPLOY.md). Every push to `main` deploys to Production and runs migrations when `DATABASE_URL`/`DATABASE_URL_UNPOOLED` are set.
+- Still to do: real domain (root + `app.` + wildcard) and `APP_URL`, Blob store, first platform admin.
