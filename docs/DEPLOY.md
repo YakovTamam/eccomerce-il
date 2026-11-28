@@ -3,6 +3,8 @@
 ## Project settings
 
 - **Production Branch:** `main`. Preview deployments are built from every other branch.
+  Check it explicitly (Settings → Environments → Production → Branch Tracking, or Settings → Git): a project imported from another template can have a different branch configured (we hit this: it pointed at `law-firm`), in which case pushes to `main` only create Previews and the old Production deployment keeps being served.
+- **Redeploy** rebuilds the _same commit_ of the deployment you click. To ship new code, push to the Production Branch (or use a Deploy Hook).
 - **Install/Build:** detected automatically (`pnpm`, `vercel-build` script).
 - **Deployment Protection (SSO):** turn it off for Production if the landing page must be public.
 
