@@ -1,3 +1,4 @@
+import Image from "next/image";
 import {
   Baby,
   Blocks,
@@ -28,6 +29,8 @@ type Store = {
   accent: string;
   icon: LucideIcon;
   tiles: [LucideIcon, LucideIcon, LucideIcon];
+  /** Optional screenshot of the storefront, shown instead of the icon art. */
+  image?: { src: string; alt: string };
 };
 
 // Illustrative storefronts (no photos: CSS + icons keep the page light). Replace with real stores once the beta has consenting merchants.
@@ -49,6 +52,10 @@ const STORES: Store[] = [
     accent: "#eab308",
     icon: Gem,
     tiles: [Crown, Sparkle, Gem],
+    image: {
+      src: "/landing/store-jewelry.webp",
+      alt: "דף הבית של חנות תכשיטים יוקרתית: שרשרת יהלומים על קטיפה שחורה",
+    },
   },
   {
     name: "קוסמטיקה גל",
@@ -94,16 +101,29 @@ function StoreCard({ s }: { s: Store }) {
           <ShoppingCart size={16} aria-hidden="true" />
         </span>
       </div>
-      <div className="lp-art">
-        <Icon size={44} strokeWidth={1.6} aria-hidden="true" />
-      </div>
-      <div className="lp-tiles">
-        {s.tiles.map((T, i) => (
-          <span key={i} className="lp-tile">
-            <T size={20} aria-hidden="true" />
-          </span>
-        ))}
-      </div>
+      {s.image ? (
+        <Image
+          className="lp-shot"
+          src={s.image.src}
+          alt={s.image.alt}
+          width={480}
+          height={362}
+          sizes="214px"
+        />
+      ) : (
+        <>
+          <div className="lp-art">
+            <Icon size={44} strokeWidth={1.6} aria-hidden="true" />
+          </div>
+          <div className="lp-tiles">
+            {s.tiles.map((T, i) => (
+              <span key={i} className="lp-tile">
+                <T size={20} aria-hidden="true" />
+              </span>
+            ))}
+          </div>
+        </>
+      )}
     </div>
   );
 }
