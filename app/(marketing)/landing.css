@@ -896,3 +896,248 @@
     display: none;
   }
 }
+
+/* ── phone polish ──────────────────────────────────── */
+@media (max-width: 640px) {
+  .lp-wrap,
+  .lp-hero-grid {
+    width: calc(100% - 32px);
+  }
+  .lp-nav {
+    top: 12px;
+  }
+  .lp-nav-in {
+    gap: 12px;
+    padding: 8px 8px 8px 12px;
+    border-radius: 16px;
+  }
+  .lp-hero {
+    padding-block: 96px 24px;
+  }
+  .lp-hero-grid {
+    gap: 22px;
+  }
+  .lp-copy {
+    gap: 18px;
+  }
+  .lp-pill {
+    font-size: 14px;
+    padding: 6px 14px;
+  }
+  .lp-sub {
+    font-size: 18px;
+  }
+  .lp-cta {
+    gap: 10px;
+  }
+  .lp-btn-lg {
+    min-height: 54px;
+    font-size: 17px;
+  }
+  /* trust: three equal columns instead of a ragged 2+1 wrap */
+  .lp-trust {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 10px;
+    width: 100%;
+    margin: 0;
+    font-size: 13px;
+    line-height: 1.35;
+    text-align: center;
+  }
+  .lp-trust li {
+    flex-direction: column;
+    justify-content: flex-start;
+    gap: 6px;
+    padding: 10px 6px;
+    border-radius: 14px;
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid var(--lp-line);
+  }
+  /* sliders: a clipped, faded strip; the full Claude demo comes later, so no floating chat here */
+  .lp-stage {
+    height: 280px;
+    overflow: hidden;
+    border-radius: 24px;
+    mask-image: linear-gradient(
+      180deg,
+      transparent,
+      #000 18%,
+      #000 82%,
+      transparent
+    );
+    -webkit-mask-image: linear-gradient(
+      180deg,
+      transparent,
+      #000 18%,
+      #000 82%,
+      transparent
+    );
+  }
+  .lp-band {
+    transform: translateY(-50%) rotate(35deg) scale(0.62);
+  }
+  .lp-pause {
+    inset-block-end: 14%;
+    inset-inline-end: 8px;
+    min-height: 36px;
+    font-size: 13px;
+  }
+  .lp-chat-float {
+    display: none;
+  }
+
+  .lp-section {
+    padding-block: 56px;
+  }
+  .lp-h2 {
+    font-size: clamp(28px, 8vw, 34px);
+  }
+  .lp-lead {
+    font-size: 17px;
+  }
+  /* steps: icon beside the title, compact cards */
+  .lp-steps {
+    margin-top: 28px;
+    gap: 12px;
+  }
+  .lp-steps .lp-card {
+    display: grid;
+    grid-template-columns: 44px minmax(0, 1fr);
+    align-items: center;
+    column-gap: 14px;
+    row-gap: 8px;
+    padding: 18px;
+    border-radius: 20px;
+  }
+  .lp-steps .lp-ico {
+    width: 44px;
+    height: 44px;
+    border-radius: 14px;
+  }
+  .lp-steps h3 {
+    margin: 0;
+    font-size: 20px;
+  }
+  .lp-steps p {
+    grid-column: 1 / -1;
+    font-size: 16px;
+  }
+  .lp-num {
+    inset-block-start: 14px;
+    inset-inline-end: 18px;
+    font-size: 36px;
+  }
+
+  .lp-claude {
+    gap: 28px;
+  }
+  .lp-points {
+    margin-top: 24px;
+    gap: 18px;
+  }
+  .lp-points b {
+    font-size: 17px;
+  }
+  .lp-points span {
+    font-size: 16px;
+  }
+  .lp-chat {
+    padding: 14px !important;
+    gap: 12px !important;
+  }
+  .lp-msg {
+    gap: 8px;
+  }
+  .lp-ava {
+    width: 30px;
+    height: 30px;
+    border-radius: 10px;
+  }
+  .lp-bubble {
+    font-size: 15px;
+    padding: 9px 12px;
+  }
+  .lp-draft {
+    font-size: 14px;
+    padding: 10px 12px;
+  }
+
+  .lp-calc {
+    grid-template-columns: minmax(0, 1fr);
+    margin-top: 36px;
+    padding: 20px;
+    gap: 20px;
+  }
+  .lp-calc h3 {
+    font-size: 22px;
+  }
+  .lp-result {
+    padding: 20px;
+  }
+
+  .lp-faq {
+    margin-top: 28px;
+    gap: 10px;
+  }
+  .lp-faq summary {
+    padding: 16px 18px;
+    font-size: 17px;
+  }
+  .lp-faq details p {
+    padding: 0 18px 18px;
+  }
+  .lp-final {
+    margin-top: 32px;
+    padding: 40px 20px;
+    border-radius: 24px;
+  }
+  .lp-final p {
+    font-size: 17px;
+  }
+  .lp-footer {
+    padding-block: 28px 36px;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 10px;
+    font-size: 14px;
+  }
+}
+@media (max-width: 400px) {
+  .lp-logo {
+    gap: 8px;
+    font-size: 16px;
+  }
+  .lp-logo-mark {
+    width: 32px;
+    height: 32px;
+    font-size: 18px;
+    border-radius: 10px;
+  }
+  .lp-nav-actions .lp-btn-sm {
+    min-height: 38px;
+    padding: 0 12px;
+    font-size: 14px;
+  }
+  .lp-h1 {
+    font-size: 40px;
+  }
+  .lp-pill {
+    font-size: 13px;
+  }
+}
+/* chat bubbles never push past their card on narrow phones */
+.lp-msg > div {
+  min-width: 0;
+}
+.lp-draft-actions {
+  flex-wrap: wrap;
+}
+@media (max-width: 400px) {
+  .lp-draft-actions .lp-btn-sm {
+    padding: 0 12px;
+  }
+  #faq.lp-section {
+    padding-block-end: 24px;
+  }
+}

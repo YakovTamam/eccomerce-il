@@ -136,21 +136,29 @@ test("landing: cost calculator uses the visitor's own numbers; FAQ opens", async
 test("landing: mobile has no horizontal scroll and keeps the CTA", async ({
   browser,
 }) => {
-  const ctx = await browser.newContext({
-    viewport: { width: 390, height: 844 },
-    isMobile: true,
-  });
-  const page = await ctx.newPage();
-  await page.goto(HOME);
-  await expect(page.getByRole("heading", { level: 1 })).toBeVisible();
-  await expect(page.getByRole("link", { name: "פתיחת חנות" })).toBeVisible();
-  expect(
-    await page.evaluate(
-      () =>
-        document.documentElement.scrollWidth <=
-        document.documentElement.clientWidth,
-    ),
-  ).toBe(true);
-  expect(await bad(page)).toEqual([]);
-  await ctx.close();
+  for (const width of [390, 320]) {
+    const ctx = await browser.newContext({
+      viewport: { width, height: 760 },
+      isMobile: true,
+    });
+    const page = await ctx.newPage();
+    await page.goto(HOME);
+    await expect(page.getByRole("heading", { level: 1 })).toBeVisible();
+    await expect(page.getByRole("link", { name: "פתיחת חנות" })).toBeVisible();
+    // the page itself and every element outside the decorative slider stay inside the viewport
+    const overflow = await page.evaluate(() => {
+      const w = document.documentElement.clientWidth;
+      const out = [...document.querySelectorAll("header *, main *, footer *")]
+        .filter((e) => !e.closest(".lp-stage"))
+        .filter((e) => {
+          const r = e.getBoundingClientRect();
+          return r.width > 0 && (r.right > w + 1 || r.left < -1);
+        })
+        .map((e) => e.tagName + "." + e.className);
+      return { page: document.documentElement.scrollWidth > w, out };
+    });
+    expect(overflow, `width ${width}`).toEqual({ page: false, out: [] });
+    if (width === 390) expect(await bad(page)).toEqual([]);
+    await ctx.close();
+  }
 });
