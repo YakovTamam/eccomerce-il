@@ -40,12 +40,20 @@ const STORES: Store[] = [
     accent: "#f59e0b",
     icon: Croissant,
     tiles: [Cookie, Wheat, Croissant],
+    image: {
+      src: "/landing/store-bakery.webp",
+      alt: "דף הבית של מאפייה: קרואסונים ולחמי מחמצת על קרש עץ",
+    },
   },
   {
     name: "בוטיק נועה",
     accent: "#d946ef",
     icon: Shirt,
     tiles: [ShoppingBag, Watch, Shirt],
+    image: {
+      src: "/landing/store-boutique.webp",
+      alt: "דף הבית של בוטיק אופנה: דוגמנית בשמלה ורודה",
+    },
   },
   {
     name: "תכשיטי שני",
@@ -62,30 +70,50 @@ const STORES: Store[] = [
     accent: "#ec4899",
     icon: Sparkles,
     tiles: [Droplets, Flower2, Sparkles],
+    image: {
+      src: "/landing/store-cosmetics.webp",
+      alt: "דף הבית של חנות קוסמטיקה: בקבוקוני סרום וקרם על אבן ורודה",
+    },
   },
   {
     name: "חנות הצמחים",
     accent: "#10b981",
     icon: Leaf,
     tiles: [Sprout, Flower2, Leaf],
+    image: {
+      src: "/landing/store-plants.webp",
+      alt: "דף הבית של חנות צמחים: מונסטרה וצמחי בית בעציצים",
+    },
   },
   {
     name: "קפה הצפון",
     accent: "#b45309",
     icon: Coffee,
     tiles: [Cookie, Coffee, Wheat],
+    image: {
+      src: "/landing/store-coffee.webp",
+      alt: "דף הבית של בית קלייה: כוס לאטה ופולי קפה קלויים",
+    },
   },
   {
     name: "נרות ריח",
     accent: "#f97316",
     icon: Flame,
     tiles: [Wind, Sparkle, Flame],
+    image: {
+      src: "/landing/store-candles.webp",
+      alt: "דף הבית של חנות נרות ריח: נרות דולקים בצנצנות ענבר",
+    },
   },
   {
     name: "סטודיו לילדים",
     accent: "#38bdf8",
     icon: Blocks,
     tiles: [Baby, Puzzle, Blocks],
+    image: {
+      src: "/landing/store-kids.webp",
+      alt: "דף הבית של סטודיו לילדים: קוביות עץ צבעוניות ובובה",
+    },
   },
 ];
 
