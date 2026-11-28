@@ -1,4 +1,4 @@
-/* Landing page: dark, glowing, calm. Logical properties; motion is optional (pause button + reduced-motion). */
+/* Landing page: dark, glowing, calm. Logical properties; motion is optional (prefers-reduced-motion). */
 .lp-root {
   --lp-bg: #06050f;
   --lp-text: #f5f3ff;
@@ -328,9 +328,6 @@
   animation-duration: 64s;
   margin-inline-start: 140px;
 }
-.lp-band[data-paused="true"] .lp-row {
-  animation-play-state: paused;
-}
 @keyframes lp-a {
   from {
     transform: translateX(0);
@@ -346,18 +343,6 @@
   to {
     transform: translateX(0);
   }
-}
-.lp-pause {
-  position: absolute;
-  z-index: 5;
-  inset-block-end: 22px;
-  inset-inline-end: 24px;
-  pointer-events: auto;
-  min-height: 40px;
-  padding: 0 14px 0 12px;
-  font-size: 14px;
-  background: rgba(14, 11, 32, 0.75);
-  backdrop-filter: blur(10px);
 }
 .lp-chat-float {
   position: absolute;
@@ -866,9 +851,6 @@
   .lp-row {
     animation: none;
   }
-  .lp-pause {
-    display: none;
-  }
   .lp-btn,
   .lp-card,
   .lp-faq summary svg {
@@ -956,9 +938,11 @@
   }
   /* sliders: a clipped, faded strip; the full Claude demo comes later, so no floating chat here */
   .lp-stage {
-    height: 280px;
+    /* full-bleed: edge to edge of the screen */
+    width: 100vw;
+    margin-inline: calc(50% - 50vw);
+    height: 340px;
     overflow: hidden;
-    border-radius: 24px;
     mask-image: linear-gradient(
       180deg,
       transparent,
@@ -975,13 +959,7 @@
     );
   }
   .lp-band {
-    transform: translateY(-50%) rotate(35deg) scale(0.62);
-  }
-  .lp-pause {
-    inset-block-end: 14%;
-    inset-inline-end: 8px;
-    min-height: 36px;
-    font-size: 13px;
+    transform: translateY(-50%) rotate(35deg) scale(0.66);
   }
   .lp-chat-float {
     display: none;

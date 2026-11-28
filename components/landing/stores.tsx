@@ -1,6 +1,3 @@
-"use client";
-
-import { useState } from "react";
 import {
   Baby,
   Blocks,
@@ -13,8 +10,6 @@ import {
   Flower2,
   Gem,
   Leaf,
-  Pause,
-  Play,
   Puzzle,
   ShoppingBag,
   ShoppingCart,
@@ -115,16 +110,15 @@ function StoreCard({ s }: { s: Store }) {
 
 /**
  * Two rows of store cards, rotated 35° as one band, scrolling in opposite directions.
- * Decorative (aria-hidden) with a visible pause control; motion is off for prefers-reduced-motion (CSS).
+ * Decorative (aria-hidden); motion is off for prefers-reduced-motion (CSS).
  */
 export function StoreSliders() {
-  const [paused, setPaused] = useState(false);
   const rowA = [...STORES, ...STORES]; // each row = two identical sets → seamless -50% loop
   const rowB = [...STORES].reverse().flatMap((s) => [s]);
   const rowBFull = [...rowB, ...rowB];
   return (
     <div className="lp-stage">
-      <div className="lp-band" data-paused={paused} aria-hidden="true">
+      <div className="lp-band" aria-hidden="true">
         <div className="lp-row" data-dir="a">
           {[...rowA, ...rowA].map((s, i) => (
             <StoreCard key={`a${i}`} s={s} />
@@ -140,19 +134,6 @@ export function StoreSliders() {
         דוגמאות לחנויות של עסקים קטנים שנבנו בפלטפורמה: מאפייה, בוטיק, תכשיטים,
         קוסמטיקה, צמחים, קפה, נרות וסטודיו לילדים.
       </p>
-      <button
-        type="button"
-        className="lp-btn lp-pause"
-        aria-pressed={paused}
-        onClick={() => setPaused((p) => !p)}
-      >
-        {paused ? (
-          <Play size={16} aria-hidden="true" />
-        ) : (
-          <Pause size={16} aria-hidden="true" />
-        )}
-        {paused ? "הפעלת תנועה" : "השהיית תנועה"}
-      </button>
     </div>
   );
 }

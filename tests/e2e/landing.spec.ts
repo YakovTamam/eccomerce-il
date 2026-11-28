@@ -61,7 +61,7 @@ test("landing: content, CTAs point at the dashboard host, RTL, accessible", asyn
   expect(await bad(page)).toEqual([]);
 });
 
-test("landing: two tilted sliders move, can be paused, and respect reduced motion", async ({
+test("landing: two tilted sliders move and respect reduced motion", async ({
   page,
   browser,
 }) => {
@@ -85,16 +85,6 @@ test("landing: two tilted sliders move, can be paused, and respect reduced motio
   const t2 = await transformOf(page);
   expect(t2).not.toBe(t1); // auto-moving
 
-  await page.getByRole("button", { name: "השהיית תנועה" }).click();
-  await expect(
-    page.getByRole("button", { name: "הפעלת תנועה" }),
-  ).toHaveAttribute("aria-pressed", "true");
-  await page.waitForTimeout(150);
-  const p1 = await transformOf(page);
-  await page.waitForTimeout(600);
-  expect(await transformOf(page)).toBe(p1); // paused
-  await page.getByRole("button", { name: "הפעלת תנועה" }).click();
-
   // the decorative band is hidden from assistive tech
   await expect(page.locator(".lp-band")).toHaveAttribute("aria-hidden", "true");
 
@@ -107,7 +97,6 @@ test("landing: two tilted sliders move, can be paused, and respect reduced motio
       .first()
       .evaluate((el) => getComputedStyle(el).animationName),
   ).toBe("none");
-  await expect(rp.getByRole("button", { name: "השהיית תנועה" })).toBeHidden();
   await rm.close();
 });
 
