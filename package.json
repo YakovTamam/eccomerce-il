@@ -13,7 +13,7 @@
     "test:e2e": "playwright test",
     "db:generate": "drizzle-kit generate",
     "db:migrate": "drizzle-kit migrate",
-    "vercel-build": "drizzle-kit migrate && next build",
+    "vercel-build": "node scripts/vercel-build.mjs",
     "admin:grant": "tsx scripts/grant-admin.ts",
     "seed:demo": "tsx scripts/seed-demo.ts"
   },
