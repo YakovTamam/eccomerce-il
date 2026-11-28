@@ -150,3 +150,16 @@ Vercel needs `APP_URL` (public https origin of app.<domain>), `AUTH_SECRET`; mig
 - No customer-level support tooling or "view as owner" (deliberately postponed; would need an explicit, audited, read-only impersonation design).
 - Usage/billing views (message usage) arrive with Phase 6 data. 2FA for admins pending an email provider.
 - The inline theme script will need a CSP nonce when CSP headers are added (Phase 7).
+
+## Landing page v1 (code complete)
+
+### Done
+
+- `/` on the platform host: dark/glow hero with two 35°-tilted auto-scrolling store sliders (pause button, reduced-motion aware), "how it works" (3 steps), Claude section (real flow: draft → approve, price change, low stock) with a cost calculator (visitor's own numbers), FAQ, final CTA. Static, no images. ADR 0008.
+- Tests: 5 new e2e (content/CTAs, slider tilt/motion/pause/reduced motion, calculator/FAQ, mobile, axe). Suite: 135 unit/integration + 15 e2e.
+
+### Open / decisions for the founder
+
+- Copy still to confirm: pricing section (when plans are decided), real beta merchants to replace the illustrative store cards, whether to add a waitlist/contact form (needs an email provider).
+- Using the "Claude" name in marketing should be checked against Anthropic's brand guidelines before launch.
+- Hero text differs slightly from the reference image on purpose: "חנות, הזמנות ושיווק" (WhatsApp ordering isn't live yet) and trust items limited to what exists today.
